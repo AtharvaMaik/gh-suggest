@@ -67,7 +67,7 @@ gh suggest 123 --body "Suggested from local test run."
 
 ## CI
 
-Workflow templates live in `docs/workflows/`. Copy them to `.github/workflows/` after refreshing GitHub CLI auth with `gh auth refresh -h github.com -s workflow`.
+GitHub Actions runs tests on Linux, macOS, and Windows. PyPI publishing is wired for GitHub releases with trusted publishing.
 
 ## FAQ
 
