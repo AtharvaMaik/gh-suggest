@@ -1,0 +1,6 @@
+diff --git a/src/client.py b/src/client.py
+--- a/src/client.py
++++ b/src/client.py
+@@ -42 +42 @@
+-timeout=5
++timeout=10

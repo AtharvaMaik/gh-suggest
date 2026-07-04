@@ -1,0 +1,17 @@
+name: Bug report
+description: Report something broken
+labels: ["bug"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproduction
+      description: Include the command and output.
+    validations:
+      required: true

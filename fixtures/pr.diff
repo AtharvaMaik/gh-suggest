@@ -1,0 +1,7 @@
+diff --git a/src/client.py b/src/client.py
+--- a/src/client.py
++++ b/src/client.py
+@@ -41,2 +41,2 @@
+ url="https://example.com"
+-timeout=1
++timeout=5

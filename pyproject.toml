@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gh-suggest"
+version = "0.1.0"
+description = "Turn staged local fixes into clickable GitHub PR suggestions."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+authors = [{name = "AtharvaMaik"}]
+keywords = ["github", "cli", "pull-request", "review", "suggestions"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+]
+
+[project.scripts]
+gh-suggest = "gh_suggest:main"
+
+[tool.setuptools]
+py-modules = ["gh_suggest"]
