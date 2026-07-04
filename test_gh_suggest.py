@@ -86,6 +86,11 @@ new file mode 100644
         text = gs.preview("123", [gs.Suggestion("a.py", 1, "body", "x")], [gs.Skip("b.py", 2, "line not in PR diff")])
         self.assertIn("Will post 1 suggestion", text)
         self.assertIn("Skipped 1 hunk", text)
+        self.assertIn("gh pr diff", text)
+
+    def test_permission_error_has_fix(self):
+        text = gs.explain_error(RuntimeError("gh api graphql failed: Resource not accessible by integration"))
+        self.assertIn("gh auth refresh", text)
 
     def test_nothing_posted_exit_code(self):
         calls = []

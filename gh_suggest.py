@@ -12,6 +12,17 @@ from typing import Callable, Iterable
 
 VERSION = "0.1.0"
 
+SKIP_FIXES = {
+    "binary file": "Binary files cannot be GitHub suggestions.",
+    "rename not supported": "Commit the rename, then suggest content edits in a separate staged change.",
+    "new file not supported": "GitHub suggestions need a line that already exists in the PR diff.",
+    "delete not supported": "GitHub suggestions can replace lines, but cannot delete whole files.",
+    "file not in PR diff": "Checkout the PR branch and stage changes only inside files changed by the PR.",
+    "empty suggestion": "Stage a replacement line, not only a deletion.",
+    "hunk too large": "Use a smaller staged hunk or raise --limit.",
+    "line not in PR diff": "Stage a change on a line already shown in `gh pr diff`.",
+}
+
 
 @dataclass
 class Hunk:
@@ -189,7 +200,8 @@ def preview(pr: str, suggestions: list[Suggestion], skips: list[Skip]) -> str:
         lines.extend(["", f"Skipped {len(skips)} hunk{'s' if len(skips) != 1 else ''}:"])
         for item in skips:
             where = f"{item.path}:{item.line}" if item.line else item.path
-            lines.append(f"- {where}: {item.reason}")
+            fix = SKIP_FIXES.get(item.reason)
+            lines.append(f"- {where}: {item.reason}" + (f" ({fix})" if fix else ""))
     return "\n".join(lines)
 
 
@@ -266,7 +278,22 @@ def require_tools() -> None:
     missing = [tool for tool in ("git", "gh") if not shutil.which(tool)]
     if missing:
         raise RuntimeError("missing required tool: " + ", ".join(missing))
-    run(["gh", "auth", "status"])
+    try:
+        run(["gh", "auth", "status"])
+    except RuntimeError as exc:
+        raise RuntimeError("GitHub CLI is not authenticated. Run `gh auth login` and try again.") from exc
+
+
+def explain_error(exc: RuntimeError) -> str:
+    message = str(exc)
+    lower = message.lower()
+    if "resource not accessible" in lower or "must have" in lower or "permission" in lower:
+        return message + "\n\nTry: `gh auth refresh -h github.com -s repo`"
+    if "could not resolve to a repository" in lower or "not found" in lower:
+        return message + "\n\nTry: pass `--repo owner/name`."
+    if "not authenticated" in lower:
+        return message
+    return message
 
 
 def read_diff(args: argparse.Namespace) -> str:
@@ -300,7 +327,14 @@ def main(argv: list[str] | None = None) -> int:
         require_tools()
         staged = parse_unified_diff(read_diff(args))
         if not staged:
-            print("gh-suggest: nothing posted\n\n- No staged changes found.\n- Run `git add <file>` first, or use `--include-unstaged`.", file=sys.stderr)
+            print(
+                "gh-suggest: nothing posted\n\n"
+                "- No staged changes found.\n"
+                "- Run `git add <file>` after editing, then retry.\n"
+                "- Use `git diff --cached` to see what gh-suggest will read.\n"
+                "- Use `--include-unstaged` only if you intentionally want unstaged changes.",
+                file=sys.stderr,
+            )
             return 1
 
         pr_cmd = ["gh", "pr", "diff", args.pr, "--patch"]
@@ -320,7 +354,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"\ngh-suggest: posted review on #{args.pr}\n\n{len(suggestions)} suggestions posted\n{len(skips)} hunks skipped")
         return 0
     except RuntimeError as exc:
-        print(f"gh-suggest: {exc}", file=sys.stderr)
+        print(f"gh-suggest: {explain_error(exc)}", file=sys.stderr)
         return 1
 
 

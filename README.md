@@ -6,7 +6,7 @@ Turn staged local fixes into clickable GitHub PR suggestions.
 gh extension install AtharvaMaik/gh-suggest
 ```
 
-![terminal preview](assets/terminal-preview.svg)
+![gh-suggest demo](assets/demo.gif)
 
 ## Install
 
@@ -22,12 +22,15 @@ Or with pipx:
 pipx install gh-suggest
 ```
 
+On Windows, `pipx install gh-suggest` is the most predictable install path. The repo also ships `gh-suggest.cmd` for GitHub CLI extension installs.
+
 ## 30-second usage
 
 ```bash
 gh pr checkout 123
 # edit files
 git add src/client.py
+git diff --cached
 pytest -q
 gh suggest 123 --dry-run
 gh suggest 123 --yes
@@ -54,11 +57,17 @@ gh suggest 123 --body "Suggested from local test run."
 
 `No staged changes found`: run `git add <file>` first.
 
-`line not in PR diff`: GitHub can only attach suggestions to existing PR diff lines.
+`line not in PR diff`: GitHub can only attach suggestions to existing PR diff lines. Run `gh pr diff 123` and stage a change on a shown line.
 
-`file not in PR diff`: your local change touches a file the PR did not change.
+`file not in PR diff`: your local change touches a file the PR did not change. Checkout the PR branch and stage only files changed by that PR.
 
 `gh auth status failed`: run `gh auth login`.
+
+`permission` or `resource not accessible`: run `gh auth refresh -h github.com -s repo`.
+
+## CI
+
+Workflow templates live in `docs/workflows/`. Copy them to `.github/workflows/` after refreshing GitHub CLI auth with `gh auth refresh -h github.com -s workflow`.
 
 ## FAQ
 
